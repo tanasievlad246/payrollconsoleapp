@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.IO;    
+using System.IO;
 
 namespace Payroll_App
 {
@@ -58,11 +58,12 @@ namespace Payroll_App
                 {
                     Console.WriteLine("Enter the hours worked for {0}", myStaff[i].NameOfStaff);
                     myStaff[i].HoursWorked = Convert.ToInt32(Console.ReadLine());
+                    myStaff[i].CalculatePay();
                     Console.WriteLine(myStaff[i].ToString());
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine(e);
+                    Console.WriteLine(e.Message);
                     i--;
                 }
             }
@@ -117,159 +118,158 @@ namespace Payroll_App
         }
     }
 
-        class Manager : Staff
+    class Manager : Staff
+    {
+        private const float managerHourlyRate = 50;
+
+        public int Allowance { get; private set; }
+
+        public Manager(string name) : base(name, managerHourlyRate) { }
+
+        public override void CalculatePay()
         {
-            private const float managerHourlyRate = 50;
+            base.CalculatePay();
+            Allowance = 1000;
 
-            public int Allowance { get; private set; }
-
-            public Manager(string name) : base(name, managerHourlyRate) { }
-
-            public override void CalculatePay()
+            if (HoursWorked > 160)
             {
-                base.CalculatePay();
-                Allowance = 1000;
-
-                if (HoursWorked > 160)
-                {
-                    TotalPay += Allowance;
-                }
-            }
-
-            public override string ToString()
-            {
-                return "Title: Manager Name = " + NameOfStaff + " Hours Worked = " + HoursWorked + " Hourly Rate = " + managerHourlyRate + " Total Pay = " + TotalPay;
+                TotalPay += Allowance;
             }
         }
 
-        class Admin : Staff
+        public override string ToString()
         {
-            private const float overtimeRate = 15.5F;
-            private const float adminHourlyRate = 30;
+            return "Title: Manager Name = " + NameOfStaff + " Hours Worked = " + HoursWorked + " Hourly Rate = " + managerHourlyRate + " Total Pay = " + TotalPay;
+        }
+    }
 
-            public float Overtime { get; private set; }
+    class Admin : Staff
+    {
+        private const float overtimeRate = 15.5F;
+        private const float adminHourlyRate = 30;
 
-            public Admin(string name) : base(name, adminHourlyRate) { }
+        public float Overtime { get; private set; }
 
-            public override void CalculatePay()
+        public Admin(string name) : base(name, adminHourlyRate) { }
+
+        public override void CalculatePay()
+        {
+            if (HoursWorked > 160)
             {
-                if (HoursWorked > 160)
-                {
-                    Overtime = overtimeRate * (HoursWorked - 160);
+                Overtime = overtimeRate * (HoursWorked - 160);
 
-                }
-
-                base.CalculatePay();
             }
 
-            public override string ToString()
-            {
-                return "Title: Admin Name = " + NameOfStaff + " Hours Worked = " + HoursWorked + " Hourly Rate = " + adminHourlyRate + " Overtime Rate = " + overtimeRate + " Total Pay = " + TotalPay;
-            }
+            base.CalculatePay();
         }
 
-        class FileReader
+        public override string ToString()
         {
-            public List<Staff> ReadFile()
-            {
-                List<Staff> myStaff = new List<Staff>();
-                string[] result = new string[2];
-                string path = "staff.txt";
-                string[] separator = { ", " };
+            return "Title: Admin Name = " + NameOfStaff + " Hours Worked = " + HoursWorked + " Hourly Rate = " + adminHourlyRate + " Overtime Rate = " + overtimeRate + " Total Pay = " + TotalPay;
+        }
+    }
 
-                if (File.Exists(path))
+    class FileReader
+    {
+        public List<Staff> ReadFile()
+        {
+            List<Staff> myStaff = new List<Staff>();
+            string[] result = new string[2];
+            string path = "staff.txt";
+            string[] separator = { ", " };
+
+            if (File.Exists(path))
+            {
+                using (StreamReader sr = new StreamReader(path))
                 {
-                    using (StreamReader sr = new StreamReader(path))
+                    while (!sr.EndOfStream)
                     {
-                        while (sr.EndOfStream != true) 
-                        {
-                            string[] strList = sr.ReadLine().Split(separator, StringSplitOptions.None);
-                            result[0] = strList[0];
-                            result[1] = strList[1];
-                            if (result[1] == "Manager")
-                            {
-                                myStaff.Add(new Manager(result[0]));
-                            }
-                            else
-                            {
-                                myStaff.Add(new Admin(result[0]));
-                            }
-                        }
-                        sr.Close();
+                        result = sr.ReadLine().Split(separator, StringSplitOptions.RemoveEmptyEntries);
+                        if (result[1] == "Manager")
+                            myStaff.Add(new Manager(result[0]));
+                        else if (result[1] == "Admin")
+                            myStaff.Add(new Admin(result[0]));
                     }
+                    sr.Close();
                 }
-                else
-                {
-                    Console.WriteLine("the file staff.txt does not exist, add a file called staff.txt \n to the project folder and add staff in it in the for 'name title' \n");
-                }
-                return myStaff;
             }
+            else
+            {
+                Console.WriteLine("Error: File does not exist");
+            }
+            return myStaff;
+        }
+    }
+
+
+    class PaySlip
+    {
+        private int month;
+        private int year;
+
+        enum MonthsOfYear { Jan = 1, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec }
+
+        public PaySlip(int payMonth, int payYear)
+        {
+            month = payMonth;
+            year = payYear;
         }
 
-        class PaySlip
+        public void GeneratePaySlip(List<Staff> myStaff)
         {
-            private int month;
-            private int year;
+            string path;
 
-            enum MonthsOfYear { Jan = 1, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec}
-
-            public PaySlip(int payMonth, int payYear)
+            foreach (Staff f in myStaff)
             {
-                month = payMonth;
-                year = payYear;
-            }
-
-            public void GeneratePaySlip(List<Staff> myStaff)
-            {
-                string path;
-
-                foreach (Staff f in myStaff)
-                {
-                    path = f.NameOfStaff + ".txt";
-                    using (StreamWriter sw = new StreamWriter(path))
-                    {
-                        sw.WriteLine("1. PAYSLIP FOR {0} {1}", (MonthsOfYear)month, year);
-                        sw.WriteLine("2. ===========================================");
-                        sw.WriteLine("3. Name of Staff: {0}", f.NameOfStaff);
-                        sw.WriteLine("4. Hours Wroked: {0}", f.HoursWorked);
-                        sw.WriteLine("5.");
-                        sw.WriteLine("6. Basic Pay: {0:C}", f.BasicPay);
-                        sw.WriteLine("7. Allowance: {0:C}", ((Manager)f).Allowance);
-                        sw.WriteLine("7. Allowance: {0:C}", ((Admin)f).Overtime);
-                        sw.WriteLine("8. ===========================================");
-                        sw.WriteLine("9. Total Pay: {0:C}", f.TotalPay);
-                        sw.WriteLine("10. ===========================================");
-                        sw.Close();
-                    }
-                }
-            }
-
-            public void GenerateSummary(List<Staff> myStaff)
-            {
-                var lazyEmployees =
-                    from e in myStaff
-                    where e.HoursWorked < 10
-                    orderby e.NameOfStaff ascending
-                    select new { e.NameOfStaff, e.HoursWorked };
-
-                string path = "summary.txt";
-
+                path = f.NameOfStaff + ".txt";
                 using (StreamWriter sw = new StreamWriter(path))
                 {
-                    sw.WriteLine("1. Staff with less than 10 hours worked");
-                    sw.WriteLine("2. ");
-                    foreach (var emp in lazyEmployees)
-                    {
-                        sw.WriteLine("Name of Staff: {0} Hours Worked: {1}", emp.NameOfStaff, emp.NameOfStaff);
-                    }
+                    sw.WriteLine(" PAYSLIP FOR {0} {1}", (MonthsOfYear)month, year);
+                    sw.WriteLine(" ===========================================");
+                    sw.WriteLine(" Name of Staff: {0}", f.NameOfStaff);
+                    sw.WriteLine(" Hours Wroked: {0}", f.HoursWorked);
+                    sw.WriteLine("");
+                    sw.WriteLine(" Basic Pay: {0:C}", f.BasicPay);
+                    if (f.GetType() == typeof(Manager))
+                    sw.WriteLine(" Allowance: {0:C}", ((Manager)f).Allowance);
+                    else if (f.GetType() == typeof(Admin))
+                    sw.WriteLine(" Allowance: {0:C}", ((Admin)f).Overtime); // System.InvalidCastException: 'Unable to cast object of type 'Payroll_App.Manager' to type 'Payroll_App.Admin'.'
+                    sw.WriteLine("===========================================");
+                    sw.WriteLine(" Total Pay: {0:C}", f.TotalPay);
+                    sw.WriteLine("===========================================");
                     sw.Close();
                 }
             }
+        }
 
-            public override string ToString()
+        public void GenerateSummary(List<Staff> myStaff)
+        {
+            var lazyEmployees =
+                from e in myStaff
+                where e.HoursWorked < 10
+                orderby e.NameOfStaff ascending
+                select new { e.NameOfStaff, e.HoursWorked };
+
+            string path = "summary.txt";
+
+            using (StreamWriter sw = new StreamWriter(path))
             {
-                return base.ToString();
+                sw.WriteLine("Staff with less than 10 hours worked");
+                sw.WriteLine("==============================================");
+                foreach (var emp in lazyEmployees)
+                {
+                    sw.WriteLine("Name of Staff: {0} Hours Worked: {1}", emp.NameOfStaff, emp.HoursWorked);
+                }
+                sw.Close();
             }
         }
+
+        public override string ToString()
+        {
+            return base.ToString();
+        }
     }
+}
+    
+
 
