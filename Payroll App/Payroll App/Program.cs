@@ -186,7 +186,29 @@ namespace Payroll_App
 
             public void GenerateSummary(List<Staff> myStaff)
             {
+                var lazyEmployees =
+                    from e in myStaff
+                    where e.HoursWorked < 10
+                    orderby e.NameOfStaff ascending
+                    select new { e.NameOfStaff, e.HoursWorked };
 
+                string path = "summary.txt";
+
+                using (StreamWriter sw = new StreamWriter(path))
+                {
+                    sw.WriteLine("1. Staff with less than 10 hours worked");
+                    sw.WriteLine("2. ");
+                    foreach (var emp in lazyEmployees)
+                    {
+                        sw.WriteLine("Name of Staff: {0} Hours Worked: {1}", emp.NameOfStaff, emp.NameOfStaff);
+                    }
+                    sw.Close();
+                }
+            }
+
+            public override string ToString()
+            {
+                return base.ToString();
             }
         }
     }
