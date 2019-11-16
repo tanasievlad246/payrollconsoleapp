@@ -10,9 +10,7 @@ namespace Payroll_App
     {
         static void Main(string[] args)
         {
-            Staff x = new Staff();
-            Console.WriteLine(x.NameOfStaff);
-            Console.ReadKey();
+
         }
     }
 
@@ -40,7 +38,7 @@ namespace Payroll_App
             }
         }
 
-        public Staff (string name, float rate)
+        public Staff(string name, float rate)
         {
             NameOfStaff = name;
             hourlyRate = rate;
@@ -58,23 +56,44 @@ namespace Payroll_App
             return "Name = " + NameOfStaff + " Hours Worked = " + hWorked + " Hourly Rate = " + hourlyRate + " Total Pay = " + TotalPay;
         }
 
-    class Manager : Staff
-    {
+        class Manager : Staff
+        {
+            private const float managerHourlyRate = 50;
 
-    }
+            public int Allowance { get; private set; }
 
-    class Admin : Staff
-    {
+            public Manager(string name) : base(name, managerHourlyRate) { }
 
-    }
+            public override void CalculatePay()
+            {
+                base.CalculatePay();
+                Allowance = 1000;
 
-    class FileReader
-    {
+                if (HoursWorked > 160)
+                {
+                    TotalPay += Allowance;
+                }
+            }
 
-    }
+            public override string ToString()
+            {
+                return "Title: Manager Name = " + NameOfStaff + " Hours Worked = " + hWorked + " Hourly Rate = " + hourlyRate + " Total Pay = " + TotalPay;
+            }
+        }
 
-    class PaySlip
-    {
+        class Admin : Staff
+        {
 
+        }
+
+        class FileReader
+        {
+
+        }
+
+        class PaySlip
+        {
+
+        }
     }
 }
