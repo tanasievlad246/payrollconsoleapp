@@ -121,17 +121,73 @@ namespace Payroll_App
                 {
                     using (StreamReader sr = new StreamReader(path))
                     {
-                        string[] strList = sr.ReadLine().Split(separator, 2, StringSplitOptions.None);
-                        result[0] = strList[0];
-                        result[1] = strList[1];
+                        while (sr.EndOfStream != true) 
+                        {
+                            string[] strList = sr.ReadLine().Split(separator, StringSplitOptions.None);
+                            result[0] = strList[0];
+                            result[1] = strList[1];
+                            if (result[1] == "Manager")
+                            {
+                                myStaff.Add(new Manager(result[0]));
+                            }
+                            else
+                            {
+                                myStaff.Add(new Admin(result[0]));
+                            }
+                        }
+                        sr.Close();
                     }
                 }
+                else
+                {
+                    Console.WriteLine("the file staff.txt does not exist, add a file called staff.txt \n to the project folder and add staff in it in the for 'name title' \n");
+                }
+                return myStaff;
             }
         }
 
         class PaySlip
         {
+            private int month;
+            private int year;
 
+            enum MonthsOfYear { Jan = 1, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec}
+
+            public PaySlip(int payMonth, int payYear)
+            {
+                month = payMonth;
+                year = payYear;
+            }
+
+            public void GeneratePaySlip(List<Staff> myStaff)
+            {
+                string path;
+
+                foreach (Staff f in myStaff)
+                {
+                    path = f.NameOfStaff + ".txt";
+                    using (StreamWriter sw = new StreamWriter(path))
+                    {
+                        sw.WriteLine("1. PAYSLIP FOR {0} {1}", (MonthsOfYear)month, year);
+                        sw.WriteLine("2. ===========================================");
+                        sw.WriteLine("3. Name of Staff: {0}", f.NameOfStaff);
+                        sw.WriteLine("4. Hours Wroked: {0}", f.HoursWorked);
+                        sw.WriteLine("5.");
+                        sw.WriteLine("6. Basic Pay: {0:C}", f.BasicPay);
+                        sw.WriteLine("7. Allowance: {0:C}", ((Manager)f).Allowance);
+                        sw.WriteLine("7. Allowance: {0:C}", ((Admin)f).Overtime);
+                        sw.WriteLine("8. ===========================================");
+                        sw.WriteLine("9. Total Pay: {0:C}", f.TotalPay);
+                        sw.WriteLine("10. ===========================================");
+                        sw.Close();
+                    }
+                }
+            }
+
+            public void GenerateSummary(List<Staff> myStaff)
+            {
+
+            }
         }
     }
 }
