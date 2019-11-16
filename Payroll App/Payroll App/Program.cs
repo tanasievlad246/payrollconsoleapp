@@ -83,7 +83,28 @@ namespace Payroll_App
 
         class Admin : Staff
         {
+            private const float overtimeRate = 15.5F;
+            private const float adminHourlyRate = 30;
 
+            public float Overtime { get; private set; }
+
+            public Admin(string name) : base(name, adminHourlyRate) { }
+
+            public override void CalculatePay()
+            {
+                if (HoursWorked > 160)
+                {
+                    Overtime = overtimeRate * (HoursWorked - 160);
+
+                }
+
+                base.CalculatePay();
+            }
+
+            public override string ToString()
+            {
+                return "Title: Admin Name = " + NameOfStaff + " Hours Worked = " + hWorked + " Hourly Rate = " + hourlyRate + " Overtime Rate = " + overtimeRate + " Total Pay = " + TotalPay;
+            }
         }
 
         class FileReader
