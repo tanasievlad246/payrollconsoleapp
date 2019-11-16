@@ -11,7 +11,66 @@ namespace Payroll_App
     {
         static void Main(string[] args)
         {
+            List<Staff> myStaff = new List<Staff>();
+            FileReader fr = new FileReader();
+            int month = 0;
+            int year = 0;
 
+            while (year == 0)
+            {
+                Console.WriteLine("\n Enter the year: ");
+
+                try
+                {
+                    year = Convert.ToInt32(Console.ReadLine());
+                }
+                catch (FormatException)
+                {
+                    Console.WriteLine("You need to enter a valid year");
+                }
+            }
+
+            while (month == 0)
+            {
+                Console.WriteLine("\n Enter the month: ");
+
+                try
+                {
+                    month = Convert.ToInt32(Console.ReadLine());
+
+                    if (month < 1 || month > 12)
+                    {
+                        Console.WriteLine("Your month needs to be a number between 1 and 12");
+                        month = 0;
+                    }
+                }
+                catch (FormatException)
+                {
+                    Console.WriteLine("You need to enter a valid month number between 1 and 12");
+                }
+            }
+
+            myStaff = fr.ReadFile();
+
+            for (int i = 0; i < myStaff.Count; i++)
+            {
+                try
+                {
+                    Console.WriteLine("Enter the hours worked for {0}", myStaff[i].NameOfStaff);
+                    myStaff[i].HoursWorked = Convert.ToInt32(Console.ReadLine());
+                    Console.WriteLine(myStaff[i].ToString());
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                    i--;
+                }
+            }
+
+            PaySlip ps = new PaySlip(month, year);
+            ps.GeneratePaySlip(myStaff);
+            ps.GenerateSummary(myStaff);
+            Console.ReadLine();
         }
     }
 
@@ -54,8 +113,9 @@ namespace Payroll_App
 
         public override string ToString()
         {
-            return "Name = " + NameOfStaff + " Hours Worked = " + hWorked + " Hourly Rate = " + hourlyRate + " Total Pay = " + TotalPay;
+            return "Name = " + NameOfStaff + " Hours Worked = " + HoursWorked + " Hourly Rate = " + hourlyRate + " Total Pay = " + TotalPay;
         }
+    }
 
         class Manager : Staff
         {
@@ -78,7 +138,7 @@ namespace Payroll_App
 
             public override string ToString()
             {
-                return "Title: Manager Name = " + NameOfStaff + " Hours Worked = " + hWorked + " Hourly Rate = " + hourlyRate + " Total Pay = " + TotalPay;
+                return "Title: Manager Name = " + NameOfStaff + " Hours Worked = " + HoursWorked + " Hourly Rate = " + managerHourlyRate + " Total Pay = " + TotalPay;
             }
         }
 
@@ -104,7 +164,7 @@ namespace Payroll_App
 
             public override string ToString()
             {
-                return "Title: Admin Name = " + NameOfStaff + " Hours Worked = " + hWorked + " Hourly Rate = " + hourlyRate + " Overtime Rate = " + overtimeRate + " Total Pay = " + TotalPay;
+                return "Title: Admin Name = " + NameOfStaff + " Hours Worked = " + HoursWorked + " Hourly Rate = " + adminHourlyRate + " Overtime Rate = " + overtimeRate + " Total Pay = " + TotalPay;
             }
         }
 
@@ -212,4 +272,4 @@ namespace Payroll_App
             }
         }
     }
-}
+
