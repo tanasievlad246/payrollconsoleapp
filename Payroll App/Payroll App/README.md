@@ -1,0 +1,1 @@
+﻿#This is a small console app that i created to learn the basics of the C# programming language
