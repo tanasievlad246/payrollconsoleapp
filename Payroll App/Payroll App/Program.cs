@@ -11,67 +11,95 @@ namespace Payroll_App
     {
         static void Main(string[] args)
         {
-            List<Staff> myStaff = new List<Staff>();
-            FileReader fr = new FileReader();
-            int month = 0;
-            int year = 0;
+            Console.WriteLine("This program adds employees to the list of employees or calculates their pay by the number if hours worked \n Enter 'calculate' or 'add' to calculate pay or add more emplyees to the list");
+            string mainInput = Console.ReadLine();
 
-            while (year == 0)
+            if (mainInput == "calculate")
             {
-                Console.WriteLine("\n Enter the year: ");
+                List<Staff> myStaff = new List<Staff>();
+                FileReader fr = new FileReader();
+                int month = 0;
+                int year = 0;
 
-                try
+                while (year == 0)
                 {
-                    year = Convert.ToInt32(Console.ReadLine());
-                }
-                catch (FormatException)
-                {
-                    Console.WriteLine("You need to enter a valid year");
-                }
-            }
+                    Console.WriteLine("\n Enter the year: ");
 
-            while (month == 0)
-            {
-                Console.WriteLine("\n Enter the month: ");
-
-                try
-                {
-                    month = Convert.ToInt32(Console.ReadLine());
-
-                    if (month < 1 || month > 12)
+                    try
                     {
-                        Console.WriteLine("Your month needs to be a number between 1 and 12");
-                        month = 0;
+                        year = Convert.ToInt32(Console.ReadLine());
+                    }
+                    catch (FormatException)
+                    {
+                        Console.WriteLine("You need to enter a valid year");
                     }
                 }
-                catch (FormatException)
+
+                while (month == 0)
                 {
-                    Console.WriteLine("You need to enter a valid month number between 1 and 12");
+                    Console.WriteLine("\n Enter the month: ");
+
+                    try
+                    {
+                        month = Convert.ToInt32(Console.ReadLine());
+
+                        if (month < 1 || month > 12)
+                        {
+                            Console.WriteLine("Your month needs to be a number between 1 and 12");
+                            month = 0;
+                        }
+                    }
+                    catch (FormatException)
+                    {
+                        Console.WriteLine("You need to enter a valid month number between 1 and 12");
+                    }
                 }
+
+                myStaff = fr.ReadFile();
+
+                for (int i = 0; i < myStaff.Count; i++)
+                {
+                    try
+                    {
+                        Console.WriteLine("Enter the hours worked for {0}", myStaff[i].NameOfStaff);
+                        myStaff[i].HoursWorked = Convert.ToInt32(Console.ReadLine());
+                        myStaff[i].CalculatePay();
+                        Console.WriteLine(myStaff[i].ToString());
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e.Message);
+                        i--;
+                    }
+                }
+
+                PaySlip ps = new PaySlip(month, year);
+                ps.GeneratePaySlip(myStaff);
+                ps.GenerateSummary(myStaff);
+                Console.ReadLine();
+
             }
-
-            myStaff = fr.ReadFile();
-
-            for (int i = 0; i < myStaff.Count; i++)
+            else if (mainInput == "add")
             {
-                try
+                FileWriter fw = new FileWriter();
+                bool loop = true;
+                string input = "";
+
+                while (loop == true)
                 {
-                    Console.WriteLine("Enter the hours worked for {0}", myStaff[i].NameOfStaff);
-                    myStaff[i].HoursWorked = Convert.ToInt32(Console.ReadLine());
-                    myStaff[i].CalculatePay();
-                    Console.WriteLine(myStaff[i].ToString());
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e.Message);
-                    i--;
+                    Console.WriteLine("Write the name and function of the emplyee you want to add to the list like this \n-> 'name , position' \nYou can write 'quit' at any time to stop");
+                    input = Console.ReadLine();
+
+                    if (input == "quit")
+                    {
+                        loop = false;
+                    }
+                    else
+                    {
+                        fw.writeEmployees(input);
+                    }
                 }
             }
-
-            PaySlip ps = new PaySlip(month, year);
-            ps.GeneratePaySlip(myStaff);
-            ps.GenerateSummary(myStaff);
-            Console.ReadLine();
         }
     }
 
@@ -117,7 +145,6 @@ namespace Payroll_App
             return "Name = " + NameOfStaff + " Hours Worked = " + HoursWorked + " Hourly Rate = " + hourlyRate + " Total Pay = " + TotalPay;
         }
     }
-
     class Manager : Staff
     {
         private const float managerHourlyRate = 50;
@@ -142,7 +169,6 @@ namespace Payroll_App
             return "Title: Manager Name = " + NameOfStaff + " Hours Worked = " + HoursWorked + " Hourly Rate = " + managerHourlyRate + " Total Pay = " + TotalPay;
         }
     }
-
     class Admin : Staff
     {
         private const float overtimeRate = 15.5F;
@@ -168,7 +194,6 @@ namespace Payroll_App
             return "Title: Admin Name = " + NameOfStaff + " Hours Worked = " + HoursWorked + " Hourly Rate = " + adminHourlyRate + " Overtime Rate = " + overtimeRate + " Total Pay = " + TotalPay;
         }
     }
-
     class FileReader
     {
         public List<Staff> ReadFile()
@@ -200,8 +225,20 @@ namespace Payroll_App
             return myStaff;
         }
     }
-
-
+    class FileWriter
+    {
+        public void writeEmployees(string userInput)
+        {
+            string path = "staff.txt";
+            string input = userInput; 
+               
+            using (StreamWriter sw = new StreamWriter(path, true))
+            {
+                    sw.WriteLine(input);
+                    sw.Close();
+            }            
+        }
+    }
     class PaySlip
     {
         private int month;
@@ -233,7 +270,7 @@ namespace Payroll_App
                     if (f.GetType() == typeof(Manager))
                     sw.WriteLine(" Allowance: {0:C}", ((Manager)f).Allowance);
                     else if (f.GetType() == typeof(Admin))
-                    sw.WriteLine(" Allowance: {0:C}", ((Admin)f).Overtime); // System.InvalidCastException: 'Unable to cast object of type 'Payroll_App.Manager' to type 'Payroll_App.Admin'.'
+                    sw.WriteLine(" Allowance: {0:C}", ((Admin)f).Overtime);
                     sw.WriteLine("===========================================");
                     sw.WriteLine(" Total Pay: {0:C}", f.TotalPay);
                     sw.WriteLine("===========================================");
@@ -270,6 +307,7 @@ namespace Payroll_App
         }
     }
 }
+
     
 
 
